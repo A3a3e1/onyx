@@ -387,6 +387,7 @@ export enum ValidSources {
   NotApplicable = "not_applicable",
   IngestionApi = "ingestion_api",
   Freshdesk = "freshdesk",
+  Intercom = "intercom",
   Fireflies = "fireflies",
   Egnyte = "egnyte",
   Airtable = "airtable",
