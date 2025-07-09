@@ -191,7 +191,7 @@ class DocumentSource(str, Enum):
     MOCK_CONNECTOR = "mock_connector"
 
 
-class DocumentSourceRequiringTenantContext(str, Enum):
+DocumentSourceRequiringTenantContext: list[DocumentSource] = [DocumentSource.FILE]
 
 
 class NotificationType(str, Enum):
