@@ -83,6 +83,7 @@ import cohereIcon from "../../../public/Cohere.svg";
 import googleIcon from "../../../public/Google.png";
 import xenforoIcon from "../../../public/Xenforo.svg";
 import highspotIcon from "../../../public/Highspot.png";
+import intercomIcon from "../../../public/assets/intercom.svg";
 import { FaGithub, FaRobot } from "react-icons/fa";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -2909,9 +2910,18 @@ export const GitbookIcon = ({
 export const HighspotIcon = ({
   size = 16,
   className = defaultTailwindCSS,
-}: IconProps) => {
-  return <LogoIcon size={size} className={className} src={highspotIcon} />;
-};
+}: IconProps) => (
+  <LogoIcon size={size} className={className} src={highspotIcon} />
+);
+
+export const IntercomIcon = ({
+  size = 16,
+  className = defaultTailwindCSS,
+}: IconProps) => <LogoIcon size={size} className={className} src={intercomIcon} />;
+
+/* 
+EE Icons
+*/
 
 export const PinnedIcon = ({
   size = 16,

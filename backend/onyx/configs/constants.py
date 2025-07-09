@@ -185,12 +185,13 @@ class DocumentSource(str, Enum):
     EGNYTE = "egnyte"
     AIRTABLE = "airtable"
     HIGHSPOT = "highspot"
+    INTERCOM = "intercom"
 
     # Special case just for integration tests
     MOCK_CONNECTOR = "mock_connector"
 
 
-DocumentSourceRequiringTenantContext: list[DocumentSource] = [DocumentSource.FILE]
+class DocumentSourceRequiringTenantContext(str, Enum):
 
 
 class NotificationType(str, Enum):

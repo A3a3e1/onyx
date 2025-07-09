@@ -1333,6 +1333,20 @@ For example, specifying .*-support.* as a "channel" will cause the connector to 
     ],
     advanced_values: [],
   },
+  intercom: {
+    description: "Configure Intercom connector",
+    values: [
+      {
+        type: "text",
+        query: "Enter your Intercom API token:",
+        label: "API Token",
+        name: "intercom_api_token",
+        optional: false,
+        description: "You can create an API token in your Intercom developer settings.",
+      },
+    ],
+    advanced_values: [],
+  },
 };
 export function createConnectorInitialValues(
   connector: ConfigurableSources,
