@@ -372,6 +372,9 @@ export const credentialTemplates: Record<ValidSources, any> = {
     freshdesk_password: "",
     freshdesk_api_key: "",
   } as FreshdeskCredentialJson,
+  intercom: {
+    intercom_api_token: "",
+  } as IntercomCredentialJson,
   fireflies: {
     fireflies_api_key: "",
   } as FirefliesCredentialJson,
