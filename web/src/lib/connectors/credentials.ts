@@ -83,6 +83,10 @@ export interface GmailCredentialJson {
   google_primary_admin: string;
 }
 
+export interface IntercomCredentialJson {
+  intercom_api_token: string;
+}
+
 export interface GoogleDriveCredentialJson {
   google_tokens: string;
   google_primary_admin: string;
