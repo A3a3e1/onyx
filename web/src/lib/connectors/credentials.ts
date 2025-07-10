@@ -83,10 +83,6 @@ export interface GmailCredentialJson {
   google_primary_admin: string;
 }
 
-export interface IntercomCredentialJson {
-  intercom_api_token: string;
-}
-
 export interface GoogleDriveCredentialJson {
   google_tokens: string;
   google_primary_admin: string;
@@ -224,6 +220,10 @@ export interface FreshdeskCredentialJson {
   freshdesk_domain: string;
   freshdesk_password: string;
   freshdesk_api_key: string;
+}
+
+export interface IntercomCredentialJson {
+  intercom_api_token: string;
 }
 
 export interface FirefliesCredentialJson {
@@ -536,6 +536,9 @@ export const credentialDisplayNames: Record<string, string> = {
   freshdesk_domain: "Freshdesk Domain",
   freshdesk_password: "Freshdesk Password",
   freshdesk_api_key: "Freshdesk API Key",
+  
+  // Intercom
+  intercom_api_token: "Intercom API Token",
 
   // Fireflies
   fireflies_api_key: "Fireflies API Key",
