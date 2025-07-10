@@ -34,43 +34,36 @@ class IntercomConnector(LoadConnector, PollConnector):
             raise ConnectorMissingCredentialError("Missing or invalid 'intercom_api_token' for Intercom connector.")
         self.intercom_api_token = intercom_api_token
 
-    def _ticket_to_document(self, ticket: Dict[str, Any]) -> Document:
-        source = ticket.get("source", {})
-        author = source.get("author", {})
-        
-        primary_owners = [BasicExpertInfo(display_name=author.get("name"), email=author.get("email"))] if author and author.get("email") else []
+    ERROR:    07/10/2025 02:23:12 PM                run_indexing.py  665: [CC Pair: 4] [Index Attempt: 11] Connector run exceptioned after elapsed time: 8.401466180002899 seconds
+Traceback (most recent call last):
+  File "/app/onyx/background/indexing/run_indexing.py", line 479, in _run_indexing
+    for document_batch, failure, next_checkpoint in connector_runner.run(
+  File "/app/onyx/connectors/connector_runner.py", line 163, in run
+    for document_batch in self.connector.poll_source(
+  File "/app/onyx/connectors/intercom/connector.py", line 130, in poll_source
+    yield from self._fetch_tickets(start_time=start_time)
+  File "/app/onyx/connectors/intercom/connector.py", line 107, in _fetch_tickets
+    doc_batch.append(self._ticket_to_document(ticket))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/onyx/connectors/intercom/connector.py", line 65, in _ticket_to_document
+    return Document(
+           ^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 193, in __init__
+    self.__pydantic_validator__.validate_python(data, self_instance=self)
+pydantic_core._pydantic_core.ValidationError: 4 validation errors for Document
+metadata.assignee_id.str
+  Input should be a valid string [type=string_type, input_value=7843941, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.8/v/string_type
+metadata.assignee_id.list[str]
+  Input should be a valid list [type=list_type, input_value=7843941, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.8/v/list_type
+metadata.team_assignee_id.str
+  Input should be a valid string [type=string_type, input_value=645700, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.8/v/string_type
+metadata.team_assignee_id.list[str]
+  Input should be a valid list [type=list_type, input_value=645700, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.8/v/list_type
 
-        sections = []
-        # Ensure the first part of the conversation is added if it exists
-        if source.get("body"):
-            sections.append(TextSection(text=source["body"]))
-        
-        # Add subsequent parts of the conversation
-        conversation_parts = ticket.get("conversation_parts", {}).get("conversation_parts", [])
-        for part in conversation_parts:
-            if part.get("body"):
-                sections.append(TextSection(text=part["body"]))
-        
-        # 4. Enriched metadata for better search and context
-        metadata = {
-            "created_at": datetime.fromtimestamp(ticket["created_at"], tz=timezone.utc).isoformat(),
-            "state": ticket.get("state"),
-            "assignee_id": ticket.get("admin_assignee_id"),
-            "team_assignee_id": ticket.get("team_assignee_id"),
-            "tags": [tag['name'] for tag in ticket.get("tags", {}).get("tags", [])],
-            "priority": ticket.get("priority", "not_prioritized"),
-            "source_type": source.get("type"),
-        }
-
-        return Document(
-            id=f"{INTERCOM_ID_PREFIX}{ticket['id']}",
-            source=DocumentSource.INTERCOM,
-            semantic_identifier=ticket.get("title") or f"Conversation {ticket['id']}",
-            doc_updated_at=datetime.fromtimestamp(ticket["updated_at"], tz=timezone.utc),
-            primary_owners=primary_owners,
-            sections=sections,
-            metadata={k: v for k, v in metadata.items() if v is not None and v != []}, # Clean up empty metadata
-        )
 
     def _get_tickets(self, starting_after: Optional[str] = None) -> Dict[str, Any]:
         if not self.intercom_api_token:
