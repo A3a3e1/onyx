@@ -17,6 +17,8 @@ from onyx.connectors.models import (
     BasicExpertInfo,
     ConnectorMissingCredentialError,
 )
+# Import the HTML parsing utility
+from onyx.file_processing.html_utils import parse_html_page_basic
 from onyx.utils.logger import setup_logger
 
 logger = setup_logger()
@@ -58,15 +60,21 @@ class IntercomConnector(LoadConnector, PollConnector):
 
         # Combine the initial message and all subsequent parts into sections
         sections = []
+        # Use the parser to clean the HTML from the ticket body
         if source.get("body"):
-            sections.append(TextSection(text=source["body"]))
+            cleaned_text = parse_html_page_basic(source["body"])
+            if cleaned_text:
+                sections.append(TextSection(text=cleaned_text))
 
         conversation_parts = ticket.get("conversation_parts", {}).get(
             "conversation_parts", []
         )
         for part in conversation_parts:
+            # Use the parser here as well for all subsequent conversation parts
             if part.get("body"):
-                sections.append(TextSection(text=part["body"]))
+                cleaned_text = parse_html_page_basic(part["body"])
+                if cleaned_text:
+                    sections.append(TextSection(text=cleaned_text))
 
         # Get and convert numeric IDs to strings to prevent validation errors
         assignee_id = ticket.get("admin_assignee_id")
