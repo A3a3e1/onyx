@@ -19,11 +19,10 @@ logger = setup_logger()
 class IntercomConnector(LoadConnector, PollConnector):
     def __init__(self, batch_size: int = INDEX_BATCH_SIZE):
         self.batch_size = batch_size
-        self._client: IntercomClient | None = None
 
     def load_credentials(self, credentials: dict[str, Any]) -> dict[str, Any] | None:
-        self._client = IntercomClient(api_key=credentials["intercom_api_token"])
-        return None
+        intercom_api_token = credentials.get("intercom_api_token")
+        self.intercom_api_token = str(intercom_api_token)
 
     @property
     def client(self) -> IntercomClient:
