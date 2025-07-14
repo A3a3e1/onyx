@@ -1,7 +1,7 @@
 import sys
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 from typing import cast
 
 from pydantic import BaseModel
