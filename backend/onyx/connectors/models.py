@@ -159,7 +159,8 @@ class DocumentBase(BaseModel):
     id: str | None = None
     sections: list[TextSection | ImageSection]
     source: DocumentSource | None = None
-    semantic_identifier: str  # displayed in the UI as the main identifier for the doc
+    semantic_identifier: str
+    link: Optional[str] = None  # displayed in the UI as the main identifier for the doc
     metadata: dict[str, str | list[str]]
 
     # UTC time
