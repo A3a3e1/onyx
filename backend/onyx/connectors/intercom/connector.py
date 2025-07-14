@@ -26,12 +26,18 @@ logger = setup_logger()
 # Module-level constants for configuration and clarity
 BASE_URL = "https://api.intercom.io"
 INTERCOM_ID_PREFIX = "intercom_"
+APP_URL_PREFIX = "https://app.intercom.com/a/apps/"
 
 
 class IntercomConnector(LoadConnector, PollConnector):
-    def __init__(self, batch_size: int = INDEX_BATCH_SIZE):
+    def __init__(
+        self,
+        batch_size: int = INDEX_BATCH_SIZE,
+        workspace_id: Optional[str] = None,
+    ):
         self.batch_size = batch_size
         self.intercom_api_token: Optional[str] = None
+        self.workspace_id = workspace_id
 
     def load_credentials(self, credentials: dict[str, Any]) -> None:
         """
@@ -43,6 +49,12 @@ class IntercomConnector(LoadConnector, PollConnector):
                 "Missing or invalid 'intercom_api_token' for Intercom connector."
             )
         self.intercom_api_token = intercom_api_token
+
+        self.workspace_id = credentials.get("workspace_id")
+        if not self.workspace_id:
+            raise ConnectorMissingCredentialError(
+                "Missing or invalid 'workspace_id' for Intercom connector."
+            )
 
     def _ticket_to_document(self, ticket: Dict[str, Any]) -> Document:
         """
@@ -176,3 +188,8 @@ class IntercomConnector(LoadConnector, PollConnector):
         """
         start_time = datetime.fromtimestamp(start, tz=timezone.utc)
         yield from self._fetch_tickets(start_time=start_time)
+
+    def get_source_link(self, doc_id: str, **kwargs: Any) -> Optional[str]:
+        if not self.workspace_id:
+            return None
+        return f"{APP_URL_PREFIX}{self.workspace_id}/inbox/inbox/all/conversations/{doc_id.replace(INTERCOM_ID_PREFIX, '')}"
