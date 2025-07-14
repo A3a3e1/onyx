@@ -110,6 +110,7 @@ class IntercomConnector(LoadConnector, PollConnector):
             id=f"{INTERCOM_ID_PREFIX}{ticket['id']}",
             source=DocumentSource.INTERCOM,
             semantic_identifier=ticket.get("title") or f"Conversation {ticket['id']}",
+            link=self.get_source_link(ticket["id"]),
             doc_updated_at=datetime.fromtimestamp(ticket["updated_at"], tz=timezone.utc),
             primary_owners=primary_owners,
             sections=sections,
@@ -192,4 +193,7 @@ class IntercomConnector(LoadConnector, PollConnector):
     def get_source_link(self, doc_id: str, **kwargs: Any) -> Optional[str]:
         if not self.workspace_id:
             return None
-        return f"{APP_URL_PREFIX}{self.workspace_id}/inbox/inbox/all/conversations/{doc_id.replace(INTERCOM_ID_PREFIX, '')}"
+
+        # doc_id from the index has a prefix, remove it for the URL
+        conversation_id = doc_id.replace(INTERCOM_ID_PREFIX, "")
+        return f"{APP_URL_PREFIX}{self.workspace_id}/conversations/{conversation_id}"
