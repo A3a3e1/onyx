@@ -126,7 +126,7 @@ def chunks_or_sections_to_search_docs(
             ).document_id,
             chunk_ind=chunk.chunk_id,
             semantic_identifier=chunk.semantic_identifier or "Unknown",
-            link=chunk.link,
+            link=chunk.source_links[0] if chunk.source_links else None,
             blurb=chunk.blurb,
             source_type=chunk.source_type,
             boost=chunk.boost,
