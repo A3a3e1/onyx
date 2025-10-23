@@ -100,10 +100,12 @@ class IntercomConnector(
             id=f"{INTERCOM_ID_PREFIX}{ticket['id']}",
             source=DocumentSource.INTERCOM,
             semantic_identifier=ticket.get("title") or f"Conversation {ticket['id']}",
-            link=self.get_source_link(ticket["id"]),
+            link=self.get_source_link(ticket['id']),
             doc_updated_at=datetime.fromtimestamp(ticket["updated_at"], tz=timezone.utc),
             primary_owners=primary_owners,
             sections=sections,
+            # Intercom API does not provide a way to get permissions for a specific ticket
+            external_access=None,
             # Clean up metadata by removing keys with None or empty values
             metadata={k: v for k, v in metadata.items() if v is not None and v != []},
         )
