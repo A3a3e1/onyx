@@ -6,30 +6,20 @@ import requests
 from onyx.configs.app_configs import INDEX_BATCH_SIZE
 from onyx.configs.constants import DocumentSource
 from onyx.connectors.interfaces import (
-    GenerateDocumentsOutput,
-    LoadConnector,
-    PollConnector,
-    SecondsSinceUnixEpoch,
+    CheckpointedConnectorWithPermSync,
+    SlimConnectorWithPermSync,
 )
-from onyx.connectors.models import (
-    Document,
-    TextSection,
-    BasicExpertInfo,
-    ConnectorMissingCredentialError,
-)
-# Import the HTML parsing utility
-from onyx.file_processing.html_utils import parse_html_page_basic
-from onyx.utils.logger import setup_logger
-
-logger = setup_logger()
-
-# Module-level constants for configuration and clarity
-BASE_URL = "https://api.intercom.io"
-INTERCOM_ID_PREFIX = "intercom_"
-APP_URL_PREFIX = "https://app.intercom.com/a/apps/"
+from onyx.connectors.models import ConnectorCheckpoint
 
 
-class IntercomConnector(LoadConnector, PollConnector):
+class IntercomConnectorCheckpoint(ConnectorCheckpoint):
+    tickets_cursor: Optional[str] = None
+
+
+class IntercomConnector(
+    CheckpointedConnectorWithPermSync[IntercomConnectorCheckpoint],
+    SlimConnectorWithPermSync,
+):
     def __init__(
         self,
         batch_size: int = INDEX_BATCH_SIZE,
@@ -142,13 +132,13 @@ class IntercomConnector(LoadConnector, PollConnector):
         return response.json()
 
     def _fetch_tickets(
-        self, start_time: Optional[datetime] = None
+        self, checkpoint: IntercomConnectorCheckpoint, start_time: Optional[datetime] = None
     ) -> GenerateDocumentsOutput:
         """
         Continuously fetches batches of tickets from Intercom, handling pagination.
         """
         doc_batch: List[Document] = []
-        starting_after = None
+        starting_after = checkpoint.tickets_cursor
 
         while True:
             response = self._get_tickets(starting_after=starting_after)
@@ -169,26 +159,23 @@ class IntercomConnector(LoadConnector, PollConnector):
             next_page_info = response.get("pages", {}).get("next")
             if next_page_info and "starting_after" in next_page_info:
                 starting_after = next_page_info["starting_after"]
+                checkpoint.tickets_cursor = starting_after
             else:
                 break  # No more pages
 
         if doc_batch:
             yield doc_batch
 
-    def load_from_state(self) -> GenerateDocumentsOutput:
-        """
-        Loads all documents from the source.
-        """
-        yield from self._fetch_tickets()
-
-    def poll_source(
-        self, start: SecondsSinceUnixEpoch, end: SecondsSinceUnixEpoch
-    ) -> GenerateDocumentsOutput:
-        """
-        Polls the source for documents updated since the start time.
-        """
+    def load_from_checkpoint(
+        self,
+        start: SecondsSinceUnixEpoch,
+        end: SecondsSinceUnixEpoch,
+        checkpoint: IntercomConnectorCheckpoint,
+    ) -> CheckpointOutput[IntercomConnectorCheckpoint]:
         start_time = datetime.fromtimestamp(start, tz=timezone.utc)
-        yield from self._fetch_tickets(start_time=start_time)
+        for doc_batch in self._fetch_tickets(checkpoint, start_time):
+            yield doc_batch
+        return checkpoint
 
     def get_source_link(self, doc_id: str, **kwargs: Any) -> Optional[str]:
         if not self.workspace_id:
@@ -197,3 +184,35 @@ class IntercomConnector(LoadConnector, PollConnector):
         # doc_id from the index has a prefix, remove it for the URL
         conversation_id = doc_id.replace(INTERCOM_ID_PREFIX, "")
         return f"{APP_URL_PREFIX}{self.workspace_id}/conversations/{conversation_id}"
+
+    def load_from_checkpoint(
+        self,
+        start: SecondsSinceUnixEpoch,
+        end: SecondsSinceUnixEpoch,
+        checkpoint: IntercomConnectorCheckpoint,
+    ) -> CheckpointOutput[IntercomConnectorCheckpoint]:
+        raise NotImplementedError
+
+    def load_from_checkpoint_with_perm_sync(
+        self,
+        start: SecondsSinceUnixEpoch,
+        end: SecondsSinceUnixEpoch,
+        checkpoint: IntercomConnectorCheckpoint,
+    ) -> CheckpointOutput[IntercomConnectorCheckpoint]:
+        return self.load_from_checkpoint(start, end, checkpoint)
+
+    def retrieve_all_slim_docs_perm_sync(
+        self,
+        start: SecondsSinceUnixEpoch | None = None,
+        end: SecondsSinceUnixEpoch | None = None,
+        callback: IndexingHeartbeatInterface | None = None,
+    ) -> GenerateSlimDocumentOutput:
+        yield from []
+
+    def build_dummy_checkpoint(self) -> IntercomConnectorCheckpoint:
+        return IntercomConnectorCheckpoint(
+            has_more=True,
+        )
+
+    def validate_checkpoint_json(self, checkpoint_json: str) -> IntercomConnectorCheckpoint:
+        return IntercomConnectorCheckpoint.model_validate_json(checkpoint_json)
