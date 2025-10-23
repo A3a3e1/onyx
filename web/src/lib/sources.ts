@@ -254,6 +254,12 @@ export const SOURCE_METADATA_MAP: SourceMap = {
     category: SourceCategory.TicketingAndTaskManagement,
     docs: "https://docs.onyx.app/admin/connectors/official/freshdesk",
   },
+  intercom: {
+    icon: IntercomIcon,
+    displayName: "Intercom",
+    category: SourceCategory.CustomerSupport,
+    docs: "https://docs.onyx.app/connectors/intercom",
+  },
   asana: {
     icon: AsanaIcon,
     displayName: "Asana",
@@ -402,61 +408,6 @@ export const SOURCE_METADATA_MAP: SourceMap = {
     displayName: "Ingestion",
     category: SourceCategory.Other,
   },
-<<<<<<< HEAD
-
-  // Placeholder (non-null default)
-=======
-  freshdesk: {
-    icon: FreshdeskIcon,
-    displayName: "Freshdesk",
-    category: SourceCategory.CustomerSupport,
-    docs: "https://docs.onyx.app/connectors/freshdesk",
-  },
-  intercom: {
-    icon: IntercomIcon,
-    displayName: "Intercom",
-    category: SourceCategory.CustomerSupport,
-    docs: "https://docs.onyx.app/connectors/intercom",
-  },
-  fireflies: {
-    icon: FirefliesIcon,
-    displayName: "Fireflies",
-    category: SourceCategory.Other,
-    docs: "https://docs.onyx.app/connectors/fireflies",
-  },
-  egnyte: {
-    icon: EgnyteIcon,
-    displayName: "Egnyte",
-    category: SourceCategory.Storage,
-    docs: "https://docs.onyx.app/connectors/egnyte",
-  },
-  airtable: {
-    icon: AirtableIcon,
-    displayName: "Airtable",
-    category: SourceCategory.Other,
-    docs: "https://docs.onyx.app/connectors/airtable",
-  },
-  gitbook: {
-    icon: GitbookIcon,
-    displayName: "GitBook",
-    category: SourceCategory.Wiki,
-    docs: "https://docs.onyx.app/connectors/gitbook",
-  },
-  highspot: {
-    icon: HighspotIcon,
-    displayName: "Highspot",
-    category: SourceCategory.Wiki,
-    docs: "https://docs.onyx.app/connectors/highspot",
-  },
-  intercom: {
-    icon: IntercomIcon,
-    displayName: "Intercom",
-    category: SourceCategory.CustomerSupport,
-    docs: "https://docs.onyx.app/connectors/intercom",
-  },
-  // currently used for the Internet Search tool docs, which is why
-  // a globe is used
->>>>>>> origin/intercom-connector
   not_applicable: {
     icon: GlobeIcon,
     displayName: "Not Applicable",
