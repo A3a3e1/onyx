@@ -209,6 +209,7 @@ class DocumentSource(str, Enum):
     EGNYTE = "egnyte"
     AIRTABLE = "airtable"
     HIGHSPOT = "highspot"
+    INTERCOM = "intercom"
 
     IMAP = "imap"
     BITBUCKET = "bitbucket"

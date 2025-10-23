@@ -181,6 +181,34 @@ def get_thread(client: WebClient, channel_id: str, thread_id: str) -> ThreadType
     return threads
 
 
+def get_threads_batch(
+    client: WebClient,
+    channel_id: str,
+    thread_ids: list[str],
+    max_workers: int,
+) -> dict[str, ThreadType]:
+    """Get all messages for a list of threads in parallel."""
+    threads: dict[str, ThreadType] = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Capture the current context so that the thread gets the current tenant ID
+        current_context = contextvars.copy_context()
+        future_to_thread_id = {
+            executor.submit(
+                current_context.run, get_thread, client, channel_id, thread_id
+            ): thread_id
+            for thread_id in thread_ids
+        }
+        for future in as_completed(future_to_thread_id):
+            thread_id = future_to_thread_id[future]
+            try:
+                thread = future.result()
+                if thread:
+                    threads[thread_id] = thread
+            except Exception:
+                logger.exception(f"Failed to fetch thread {thread_id}")
+    return threads
+
+
 def get_latest_message_time(thread: ThreadType) -> datetime:
     max_ts = max([float(msg.get("ts", 0)) for msg in thread])
     return datetime.fromtimestamp(max_ts, tz=timezone.utc)
@@ -399,6 +427,7 @@ def _message_to_doc(
     user_cache: dict[str, BasicExpertInfo | None],
     seen_thread_ts: set[str],
     channel_access: ExternalAccess | None,
+    thread_messages: ThreadType | None = None,
     msg_filter_func: Callable[
         [MessageType], SlackMessageFilterReason | None
     ] = default_msg_filter,
@@ -418,19 +447,20 @@ def _message_to_doc(
         if thread_ts in seen_thread_ts:
             return None, None
 
-        thread = get_thread(
-            client=client, channel_id=channel["id"], thread_id=thread_ts
-        )
+        thread = thread_messages
+        if not thread:
+            logger.warning(f"Thread {thread_ts} not pre-fetched, skipping.")
+            return None, None
 
         # we'll just set and use the last filter reason if
         # we bomb out later
         filtered_thread = []
-        for message in thread:
-            filter_reason = msg_filter_func(message)
+        for m in thread:
+            filter_reason = msg_filter_func(m)
             if filter_reason:
                 continue
 
-            filtered_thread.append(message)
+            filtered_thread.append(m)
     else:
         filter_reason = msg_filter_func(message)
         if filter_reason:
@@ -533,6 +563,7 @@ def _process_message(
     user_cache: dict[str, BasicExpertInfo | None],
     seen_thread_ts: set[str],
     channel_access: ExternalAccess | None,
+    thread_messages: ThreadType | None = None,
     msg_filter_func: Callable[
         [MessageType], SlackMessageFilterReason | None
     ] = default_msg_filter,
@@ -553,6 +584,7 @@ def _process_message(
             user_cache=user_cache,
             seen_thread_ts=seen_thread_ts,
             channel_access=channel_access,
+            thread_messages=thread_messages,
             msg_filter_func=msg_filter_func,
         )
         return ProcessedSlackMessage(
@@ -861,14 +893,51 @@ class SlackConnector(
 
             num_threads_start = len(seen_thread_ts)
 
+            # Identify unique thread_ts to fetch, that we haven't seen
+            thread_ts_to_fetch = list(
+                {
+                    msg["thread_ts"]
+                    for msg in message_batch
+                    if msg.get("thread_ts") and msg["thread_ts"] not in seen_thread_ts
+                }
+            )
+
+            # Fetch threads in a batch
+            if thread_ts_to_fetch:
+                fetched_threads = get_threads_batch(
+                    client=self.client,
+                    channel_id=channel_id,
+                    thread_ids=thread_ts_to_fetch,
+                    max_workers=self.num_threads,
+                )
+            else:
+                fetched_threads = {}
+
             # Process messages in parallel using ThreadPoolExecutor
             with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
-                # NOTE(rkuo): this seems to be assuming the slack sdk is thread safe.
-                # That's a very bold assumption! Haven't seen a direct issue with this
-                # yet, but likely not correct to rely on.
-
                 futures: list[Future[ProcessedSlackMessage]] = []
+                processed_t_or_m_ts_in_current_batch = set()
+
                 for message in message_batch:
+                    thread_ts = message.get("thread_ts")
+                    thread_or_message_ts = thread_ts or message["ts"]
+
+                    # Only process if this thread/message hasn't been processed in this batch yet
+                    if thread_or_message_ts in processed_t_or_m_ts_in_current_batch:
+                        continue
+
+                    thread_messages = None
+                    if thread_ts:
+                        # If it's a thread, ensure we have its messages
+                        thread_messages = fetched_threads.get(thread_ts)
+                        if not thread_messages:
+                            # If thread messages weren't fetched (e.g., due to error or not in thread_ts_to_fetch), skip
+                            logger.warning(f"Thread {thread_ts} not pre-fetched or empty, skipping message {message['ts']}.")
+                            continue
+
+                    # Mark as processed in current batch to avoid re-submitting
+                    processed_t_or_m_ts_in_current_batch.add(thread_or_message_ts)
+
                     # Capture the current context so that the thread gets the current tenant ID
                     current_context = contextvars.copy_context()
                     futures.append(
@@ -882,6 +951,7 @@ class SlackConnector(
                             user_cache=self.user_cache,
                             seen_thread_ts=seen_thread_ts,
                             channel_access=checkpoint.current_channel_access,
+                            thread_messages=thread_messages,
                         )
                     )
 

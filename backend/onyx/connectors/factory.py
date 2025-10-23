@@ -9,6 +9,10 @@ from onyx.configs.constants import DocumentSource
 from onyx.configs.llm_configs import get_image_extraction_and_analysis_enabled
 from onyx.connectors.credentials_provider import OnyxDBCredentialsProvider
 from onyx.connectors.exceptions import ConnectorValidationError
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/intercom-connector
 from onyx.connectors.interfaces import BaseConnector
 from onyx.connectors.interfaces import CheckpointedConnector
 from onyx.connectors.interfaces import CredentialsConnector
@@ -92,8 +96,12 @@ def identify_connector_class(
     source: DocumentSource,
     input_type: InputType | None = None,
 ) -> Type[BaseConnector]:
+<<<<<<< HEAD
     # Load the connector class using lazy loading
     connector = _load_connector_class(source)
+=======
+    connector = _load_connector_class(source)
+>>>>>>> origin/intercom-connector
 
     # Validate connector supports the requested input_type
     _validate_connector_supports_input_type(connector, input_type, source)

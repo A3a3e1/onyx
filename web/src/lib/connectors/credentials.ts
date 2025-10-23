@@ -240,6 +240,11 @@ export interface FreshdeskCredentialJson {
   freshdesk_api_key: string;
 }
 
+export interface IntercomCredentialJson {
+  intercom_api_token: string;
+  workspace_id: string;
+}
+
 export interface FirefliesCredentialJson {
   fireflies_api_key: string;
 }
@@ -427,6 +432,10 @@ export const credentialTemplates: Record<ValidSources, any> = {
     freshdesk_domain: "",
     freshdesk_api_key: "",
   } as FreshdeskCredentialJson,
+  intercom: {
+    intercom_api_token: "",
+    workspace_id: "",
+  } as IntercomCredentialJson,
   fireflies: {
     fireflies_api_key: "",
   } as FirefliesCredentialJson,
@@ -604,6 +613,10 @@ export const credentialDisplayNames: Record<string, string> = {
   // Freshdesk
   freshdesk_domain: "Freshdesk Domain",
   freshdesk_api_key: "Freshdesk API Key",
+  
+  // Intercom
+  intercom_api_token: "Intercom API Token",
+  workspace_id: "Workspace ID",
 
   // Fireflies
   fireflies_api_key: "Fireflies API Key",

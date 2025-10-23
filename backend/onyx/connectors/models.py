@@ -1,7 +1,7 @@
 import sys
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 from typing import cast
 
 from pydantic import BaseModel
@@ -160,7 +160,8 @@ class DocumentBase(BaseModel):
     id: str | None = None
     sections: list[TextSection | ImageSection]
     source: DocumentSource | None = None
-    semantic_identifier: str  # displayed in the UI as the main identifier for the doc
+    semantic_identifier: str
+    link: Optional[str] = None  # displayed in the UI as the main identifier for the doc
     metadata: dict[str, str | list[str]]
 
     # UTC time

@@ -112,7 +112,7 @@ def _upsert_documents_in_db(
     # Metadata here refers to basic document info, not metadata about the actual content
     document_metadata_list: list[DocumentMetadata] = []
     for doc in documents:
-        first_link = next(
+        first_link = doc.link or next(
             (section.link for section in doc.sections if section.link), ""
         )
         db_doc_metadata = DocumentMetadata(

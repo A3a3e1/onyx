@@ -192,6 +192,10 @@ CONNECTOR_CLASS_MAP = {
         module_path="onyx.connectors.highspot.connector",
         class_name="HighspotConnector",
     ),
+    DocumentSource.INTERCOM: ConnectorMapping(
+        module_path="onyx.connectors.intercom.connector",
+        class_name="IntercomConnector",
+    ),
     DocumentSource.IMAP: ConnectorMapping(
         module_path="onyx.connectors.imap.connector",
         class_name="ImapConnector",
