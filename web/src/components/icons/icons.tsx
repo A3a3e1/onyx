@@ -3131,6 +3131,11 @@ export const HighspotIcon = ({
   <LogoIcon size={size} className={className} src={highspotIcon} />
 );
 
+export const IntercomIcon = ({
+  size = 16,
+  className = defaultTailwindCSS,
+}: IconProps) => <LogoIcon size={size} className={className} src={intercomIcon} />;
+
 /*
 EE Icons
 */
