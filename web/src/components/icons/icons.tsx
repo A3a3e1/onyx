@@ -3136,13 +3136,6 @@ export const IntercomIcon = ({
   className = defaultTailwindCSS,
 }: IconProps) => <LogoIcon size={size} className={className} src={intercomIcon} />;
 
-export const BitbucketIcon = ({
-  size = 16,
-  className = defaultTailwindCSS,
-}: IconProps) => (
-  <LogoIcon size={size} className={className} src={bitbucketIcon} />
-);
-
 /*
 EE Icons
 */

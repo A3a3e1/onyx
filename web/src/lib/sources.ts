@@ -257,7 +257,7 @@ export const SOURCE_METADATA_MAP: SourceMap = {
   intercom: {
     icon: IntercomIcon,
     displayName: "Intercom",
-    category: SourceCategory.CustomerSupport,
+    category: SourceCategory.TicketingAndTaskManagement,
     docs: "https://docs.onyx.app/connectors/intercom",
   },
   asana: {
